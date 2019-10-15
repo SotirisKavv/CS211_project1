@@ -1,0 +1,71 @@
+#!/bin/bash
+
+
+sum_simple() {
+
+	arr=("$@")
+	ret=0
+	for i in "${arr[@]}"; do
+		ret=$(($ret+$i)) 
+	done
+}
+
+sum_squared() {
+	arr=("$@")
+	ret=0
+	for i in "${arr[@]}"; do
+		sq=$(($i**2))
+		ret=$(($ret+$sq)) 
+	done
+}
+
+OLDIFS=$IFS
+for var in $@
+do
+	filename="$var"
+	length=0
+	sum_x=0
+	sum_y=0
+	sum_x2=0
+	sum_xy=0
+	error=0
+
+	X=()
+	Y=()
+
+	while IFS= read -r line; 
+	do
+		IFS=":"
+		echo "$line"
+		read -a strarr <<< "$line"
+
+		X+=( "${strarr[0]}" )
+
+		Y+=( "${strarr[1]}" )
+
+		length=$(($length + 1))
+
+	done < "$filename"
+
+	sum_simple "${X[@]}"
+	sum_x=$ret
+	sum_simple "${Y[@]}"
+	sum_y=$ret
+	sum_squared "${X[@]}"
+	sum_x2=$ret
+
+	for (( i = 0; i < $length - 1; i++ )); do
+		xy=$((${X[$i]}*${Y[$i]}))
+		sum_xy=$(($sum_xy+$xy))
+	done
+
+	a=echo '$((length * sum_xy - (sum_x*sum_y))/(length*sum_x2 - (sum_x*sum_x)))' | bc -q
+
+	echo length: $length
+	echo sum_x: $sum_x, sum_y: $sum_y, 
+	echo sum_x2: $sum_x2, sum_xy: $sum_xy
+	echo $a
+
+	echo "--------------------"
+done
+IFS=$OLDIFSs
