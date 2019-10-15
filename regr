@@ -24,9 +24,6 @@ for var in $@
 do
 	filename="$var"
 	length=0
-	sum_x=0
-	sum_y=0
-	sum_x2=0
 	sum_xy=0
 	error=0
 
@@ -59,12 +56,31 @@ do
 		sum_xy=$(($sum_xy+$xy))
 	done
 
-	a=echo '$((length * sum_xy - (sum_x*sum_y))/(length*sum_x2 - (sum_x*sum_x)))' | bc -q
+	var1=$(($length * $sum_xy))
+	var2=$(($sum_x * sum_y))
+	var3=$(($length * $sum_x2))
+	var4=$(($sum_x * $sum_x))
+	var5=$(($var1-$var2))
+	var6=$(($var3-$var4))
+	a=$(bc <<< "scale=2;$var5/$var6")
+
+	var1=$(bc <<< "$a*$sum_x")
+	var2=$(bc <<< "$sum_y-$var1")
+	b=$(bc <<< "scale=2;$var2/$length")
+
+
+	for (( i = 0; i < $length - 1; i++ )); do
+		var1=$(bc <<< "$a*${X[$i]}")
+		var2=$(bc <<< "$var1+$b")
+		var3=$(bc <<< "${Y[$i]}-$var2")
+		var4=$(bc <<< "$var3^2")
+		error=$(bc <<< "scale=2;$error+$var4")
+	done
 
 	echo length: $length
 	echo sum_x: $sum_x, sum_y: $sum_y, 
 	echo sum_x2: $sum_x2, sum_xy: $sum_xy
-	echo $a
+	echo a: $a, b: $b, error: $error
 
 	echo "--------------------"
 done
