@@ -61,35 +61,35 @@ do
 	tmp2=$(($(($length * $sum_x2))-$(($sum_x * $sum_x))))
 	if [[ $(echo "$tmp2 == 0" | bc) -eq 1 ]]
 	then
-		echo "FILE: $filename, undefined"
-		break
-	fi
-	a=$(bc <<< "scale=2;$tmp1/tmp2")
-	x=$(bc <<< "scale=2;$a*$sum_x")
-	if [[ $(echo "$a < 0" | bc) -eq 1 ]]
-	then
-		tmp=$(bc <<< "scale=2;$x * -1")
-		y=$(bc <<< "scale=2;$sum_y+$tmp")
+		a=0
+		b=0
+		c=0
 	else
-		y=$(bc <<< "scale=2;$sum_y-$x")
+		a=$(bc <<< "scale=2;$tmp1/$tmp2")
+
+
+		x=$(bc <<< "scale=2;$a*$sum_x")
+		if [[ $(echo "$a < 0" | bc) -eq 1 ]]
+		then
+			tmp=$(bc <<< "scale=2;$x * -1")
+			y=$(bc <<< "scale=2;$sum_y+$tmp")
+		else
+			y=$(bc <<< "scale=2;$sum_y-$x")
+		fi
+		b=$(bc <<< "scale=2;$y/$length")
+
+
+		for (( i = 0; i < $length; i++ )); do
+			var1=$(bc <<< "scale=2;$a*${X[$i]}")
+			var2=$(bc <<< "scale=2;$var1+$b")
+			var3=$(bc <<< "scale=2;${Y[$i]}-$var2")
+			var4=$(bc <<< "scale=2;$var3*$var3")
+			error=$(bc <<< "scale=2;$error+$var4")
+		done
+
+		c=1
 	fi
-	b=$(bc <<< "scale=2;$y/$length")
 
-
-	for (( i = 0; i < $length; i++ )); do
-		var1=$(bc <<< "scale=2;$a*${X[$i]}")
-		var2=$(bc <<< "scale=2;$var1+$b")
-		var3=$(bc <<< "scale=2;${Y[$i]}-$var2")
-		var4=$(bc <<< "scale=2;$var3*$var3")
-		error=$(bc <<< "scale=2;$error+$var4")
-		# echo "$var1 | $var2 | $var3 | $var4 | $error"
-	done
-
-	# echo length: $length
-	# echo sum_x: $sum_x, sum_y: $sum_y, 
-	# echo sum_x2: $sum_x2, sum_xy: $sum_xy
-	# echo a: $a, b: $b, error: $error
-
-	echo "FILE: $filename, a=$a b=$b c=1 err=$error"
+	echo "FILE: $filename, a=$a b=$b c=$c err=$error"
 done
 IFS=$OLDIFSs
