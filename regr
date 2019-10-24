@@ -1,15 +1,15 @@
 #!/bin/bash
 
-
+#function to sum all the elements in an array
 sum_simple() {
-
-	arr=("$@")
+	arr=("$@")						#sets the array passed as argument to a local array
 	ret=0
 	for i in "${arr[@]}"; do
 		ret=$(($ret+$i)) 
 	done
 }
 
+#function to sum all the squared elements in an array
 sum_squared() {
 	arr=("$@")
 	ret=0
@@ -19,67 +19,71 @@ sum_squared() {
 	done
 }
 
-OLDIFS=$IFS
-for var in $@
+OLDIFS=$IFS			#keeps old value at a local variable
+for var in $@						#for every file passed as argument, do...
 do
 	filename="$var"
-	length=0
+	length=0		#variables initialization
 	sum_xy=0
 	error=0
 
-	X=()
+	X=()			#arrays initialization
 	Y=()
 
-	if [[ -f "$var" ]]; then
-		while IFS= read -r line; 
-		do
-			IFS=":"
-			read -a strarr <<< "$line"
+	if [[ -f "$var" ]]; then		#check if file exists. If so, continue
+		while IFS= read -r line; 	#split every line based on '\n' character
+		do 							#in fact, it reads every line of the file with filename $var
+			IFS=":"					#splits lines by ':' character
+			read -a strarr <<< "$line"	#puts the splitted items in a temp array
 
-			X+=( "${strarr[0]}" )
+			X+=( "${strarr[0]}" )	#saves the first value at the X array
 
-			Y+=( "${strarr[1]}" )
+			Y+=( "${strarr[1]}" )	#saves the second value at the Y array
 
-			length=$(($length + 1))
+			length=$(($length + 1))	#augments the length variable by one
 
 		done < "$filename"
 
-		sum_simple "${X[@]}"
-		sum_x=$ret
+		#use the functions defined in the beginning
+		sum_simple "${X[@]}"	#calculates the total sum of X's elements
+		sum_x=$ret				#saves it at a local variable
 		
-		sum_simple "${Y[@]}"
-		sum_y=$ret
+		sum_simple "${Y[@]}"	#calculates the total sum of Y's elements
+		sum_y=$ret				#saves it at a local variable
 		
-		sum_squared "${X[@]}"
-		sum_x2=$ret
+		sum_squared "${X[@]}"	#calculates the sum of the X's squared elements
+		sum_x2=$ret				#saves it at a local variable
 
+		#for loop  to calculate the sum of X*Y product
 		for (( i = 0; i < $length; i++ )); do
 			xy=$((${X[$i]}*${Y[$i]}))
 			sum_xy=$(($sum_xy+$xy))
 		done
 
-		tmp1=$(($(($length * $sum_xy))-$(($sum_x * sum_y))))
-		tmp2=$(($(($length * $sum_x2))-$(($sum_x * $sum_x))))
-		if [[ $(echo "$tmp2 == 0" | bc) -eq 1 ]]
-		then
-			a=0
+		#for the following calculations, bc command is used, as the program contains operations with decimals
+		tmp1=$(($(($length * $sum_xy))-$(($sum_x * sum_y))))	#calculates the numerator of a's fraction
+		tmp2=$(($(($length * $sum_x2))-$(($sum_x * $sum_x))))	#calculates the denominator of a's fraction
+		if [[ $(echo "$tmp2 == 0" | bc) -eq 1 ]]		#if the denominator is equal to zero, which happens
+		then											#i.e. when X has the same value for different Ys,
+			a=0											#it sets a, b, and err equal to zero
 			b=0
 			c=0
-		else
-			a=$(bc <<< "scale=2;$tmp1/$tmp2")
+		else 											#else, it continues the calculations
+			a=$(bc <<< "scale=2;$tmp1/$tmp2")			#calculates a and saves it at a local variable
 
 
+			#calculation of b
 			x=$(bc <<< "scale=2;$a*$sum_x")
 			if [[ $(echo "$a < 0" | bc) -eq 1 ]]
 			then
-				tmp=$(bc <<< "scale=2;$x * -1")
-				y=$(bc <<< "scale=2;$sum_y+$tmp")
+				tmp=$(bc <<< "scale=2;$x * -1")		#if a (calculated before) is less than zero,
+				y=$(bc <<< "scale=2;$sum_y+$tmp")	#program adds the absolute value of 'a*sum_x' term
 			else
 				y=$(bc <<< "scale=2;$sum_y-$x")
 			fi
-			b=$(bc <<< "scale=2;$y/$length")
+			b=$(bc <<< "scale=2;$y/$length")		#calculates b and saves it at a local variable
 
-
+			#calculation of err partially
 			for (( i = 0; i < $length; i++ )); do
 				var1=$(bc <<< "scale=2;$a*${X[$i]}")
 				var2=$(bc <<< "scale=2;$var1+$b")
@@ -88,12 +92,11 @@ do
 				error=$(bc <<< "scale=2;$error+$var4")
 			done
 
-			c=1
+			c=1										#sets c equal to 1
 		fi
 
-		echo "FILE: $filename, a=$a b=$b c=$c err=$error"	
+		echo "FILE: $filename, a=$a b=$b c=$c err=$error"	#prints filename, a, b, c and err
 	fi
-	
-	
+		
 done
-IFS=$OLDIFSs
+IFS=$OLDIFSs	#sets IFS to the old value
