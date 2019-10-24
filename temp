@@ -1,0 +1,197 @@
+i=0;
+while IFS= read -r line;
+
+do
+	#kobo omades kai score apo arxeio
+	#meta ksanakobw tis omades se gipedouxous k filoksenoumenous
+	
+	teams=`echo $line | cut -d ":" -f1`
+	gipedouhos=`echo $teams | cut -d "-" -f1`
+	filoksenoumenos=`echo $teams | cut -d "-" -f2`
+	HomeTeam[i]=$gipedouhos
+	AwayTeam[i]=$filoksenoumenos
+	#meta ksanakobw score se score gipedouxon k filoksenoumenon
+	scores=`echo $line | cut -d ":" -f2`
+	hscore=`echo $scores| cut -d "-" -f1`
+	ascore=`echo $scores| cut -d "-" -f2`
+	HomeScore[i]=$hscore
+	AwayScore[i]=$ascore
+	
+
+	i=$(($i+1))
+done < $1
+#sto total eisagw to plithos stoixeion pinaka HomeTeam=plithos AwayTeam pinaka
+#me to #pairnw to plithos tou pinaka
+total=${#HomeTeam[@]}
+for((i=0; i<$total; i++))
+do
+	#tuposa kai eida oti gemisan swsta oi pinakes
+	echo ${HomeTeam[i]}
+	echo ${AwayTeam[i]}
+	echo ${HomeScore[i]}
+	echo ${AwayScore[i]}
+	#elegxos score kai upologismoi bathmwn
+	#isopalia
+	if [ ${HomeScore[i]} -eq ${AwayScore[i]} ];
+	then 
+		HomePoints[i]=1
+		AwayPoints[i]=1
+		echo ${HomePoints[i]}
+		echo ${AwayPoints[i]}
+	fi
+	#niki gipedouxou
+	if [ ${HomeScore[i]} -gt ${AwayScore[i]} ];
+	then
+		HomePoints[i]=3
+		AwayPoints[i]=0
+		echo ${HomePoints[i]}
+		echo ${AwayPoints[i]}
+	fi
+	#niki filoksenoumenou
+	if [ ${AwayScore[i]} -gt ${HomeScore[i]} ];
+	then
+		HomePoints[i]=0
+		AwayPoints[i]=3
+		echo ${HomePoints[i]}
+		echo ${AwayPoints[i]}
+	fi
+	echo
+	echo
+done
+
+#sortaro kai kanw uniq tis omades 
+#tis ektupono na tsekarw an bgikan swsta/meta tha ta sbisw
+
+
+UniqHomeTeam=($(echo ${HomeTeam[@]} | tr ' ' '\n' | sort | uniq | tr '\n' ' '))
+UniqAwayTeam=($(echo ${AwayTeam[@]} | tr ' ' '\n' | sort | uniq | tr '\n' ' '))
+#echo ${UniqHomeTeam[0]}
+#echo ${UniqAwayTeam[0]}
+#echo
+#echo ${UniqHomeTeam[1]}
+#echo ${UniqAwayTeam[1]}
+#echo
+#echo ${UniqHomeTeam[2]}
+#echo ${UniqAwayTeam[2]}
+#echo
+#echo ${UniqHomeTeam[3]}
+#echo ${UniqAwayTeam[3]}
+
+echo 
+echo
+
+#krata plithos stoixeiwn uniq teams me metabliti total_uniq
+total_uniq=${#HomeTeam[@]}
+for (( j = 0; j < $total_uniq; j++ )); do
+
+	sumpoints[j]=0
+	sumgoalup[j]=0
+	sumgoaldown[j]=0
+
+done
+
+
+
+
+
+#diplo for_loop gia na eksagw sums gia bathmous GOAL(UP/DOWN)
+for (( j = 0; j < $total_uniq; j++ )); do
+	sumpoints[j]=0
+	sumgoalup[j]=0
+	sumgoaldown[j]=0
+
+	for (( i = 0; i < $total; i++ )); do
+
+		if [[ ${UniqHomeTeam[j]} -eq ${HomeTeam[i]} ]]; then
+			let sumpoints[j]=sumpoints[j]+HomePoints[i]
+			let	sumgoalup[j]=sumgoalup[j]+HomeScore[i]
+			let	sumgoaldown[j]=sumgoaldown[j]+AwayScore[i]
+		fi
+
+		if  [[ ${UniqAwayTeam[j]} -eq ${AwayTeam[i]} ]]; then
+			let sumpoints[j]=sumpoints[j]+AwayPoints[i]
+			let	sumgoalup[j]=sumgoalup[j]+AwayScore[i]
+			let	sumgoaldown[j]=sumgoaldown[j]+HomeScore[i]
+		fi
+		
+	done
+	
+done
+echo 
+echo
+
+
+#ektuposi bathmonlogias 
+for (( j = 0; j < $total_uniq; j++ )); do
+	echo ${sumpoints[j]} 
+	echo  ${sumgoalup[j]} 
+	echo ${sumgoaldown[j]}
+	echo
+done
+
+#ektuposi asortartistwn ton stoixeiwn afou eginan ola ta sum klp 
+#kathe omadas
+
+for (( j = 0; j < $total_uniq; j++ ));
+	 do
+		echo ${UniqHomeTeam[j]}
+		echo ${sumpoints[j]} 
+		echo  ${sumgoalup[j]} 
+		echo ${sumgoaldown[j]}
+		echo
+done
+echo
+j=0;
+
+#sortarisma basei points kai swaps thesewn
+
+
+
+for (( i = 0; i < total_uniq ; i++ )); do
+	#statements
+	for (( j = 0; j < total_uniq; j++ )); do
+		
+		if [ ${sumpoints[i]} -gt ${sumpoints[j]} ];then
+			
+			temp1=${sumpoints[i]}
+			sumpoints[i]=${sumpoints[j]}
+			sumpoints[j]=$temp1
+
+			temp2=${sumgoalup[i]}
+			sumgoalup[i]=${sumgoalup[j]}
+			sumgoalup[j]=$temp2
+
+			temp3=${sumgoaldown[i]}
+			sumgoaldown[i]=${sumgoaldown[j]}
+			sumgoaldown[j]=$temp3
+
+			temp4=${UniqHomeTeam[i]}
+			UniqHomeTeam[i]=${UniqHomeTeam[j]}
+			UniqHomeTeam[j]=$temp4
+		fi	
+
+
+	done
+	echo $i
+	
+done
+echo
+
+
+for (( j = 0; j < $total_uniq; j++ ));
+	 do
+		echo ${UniqHomeTeam[j]}
+		echo ${sumpoints[j]} 
+		echo  ${sumgoalup[j]} 
+		echo ${sumgoaldown[j]}
+		
+	done
+	echo
+	echo
+
+for (( j=0; j < total_uniq; j++));
+	do 	
+		k=$(($j+1))
+		printf "%d.\t%-15s\t%s\t%s-%s \n" $k ${UniqHomeTeam[j]} ${sumpoints[j]} ${sumgoalup[j]} ${sumgoaldown[j]} 
+		
+	done

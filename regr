@@ -5,7 +5,7 @@ sum_simple() {
 	arr=("$@")						#sets the array passed as argument to a local array
 	ret=0
 	for i in "${arr[@]}"; do
-		ret=$(($ret+$i)) 
+		ret=$(bc <<< "scale=2;$ret+$i")
 	done
 }
 
@@ -14,8 +14,8 @@ sum_squared() {
 	arr=("$@")
 	ret=0
 	for i in "${arr[@]}"; do
-		sq=$(($i**2))
-		ret=$(($ret+$sq)) 
+		sq=$(bc <<< "scale=2;$i^2")
+		ret=$(bc <<< "scale=2;$ret+$sq") 
 	done
 }
 
@@ -56,13 +56,13 @@ do
 
 		#for loop  to calculate the sum of X*Y product
 		for (( i = 0; i < $length; i++ )); do
-			xy=$((${X[$i]}*${Y[$i]}))
-			sum_xy=$(($sum_xy+$xy))
+			xy=$(bc <<< "scale=2;${X[$i]}*${Y[$i]}")
+			sum_xy=$(bc <<< "scale=2;$sum_xy+$xy")
 		done
 
 		#for the following calculations, bc command is used, as the program contains operations with decimals
-		tmp1=$(($(($length * $sum_xy))-$(($sum_x * sum_y))))	#calculates the numerator of a's fraction
-		tmp2=$(($(($length * $sum_x2))-$(($sum_x * $sum_x))))	#calculates the denominator of a's fraction
+		tmp1=$(bc <<< "scale=2;$(bc <<< "scale=2;$length * $sum_xy")-$(bc <<< "scale=2;$sum_x * sum_y")")	#calculates the numerator of a's fraction
+		tmp2=$(bc <<< "scale=2;$(bc <<< "scale=2;$length * $sum_x2")-$(bc <<< "scale=2;$sum_x * $sum_x")")	#calculates the denominator of a's fraction
 		if [[ $(echo "$tmp2 == 0" | bc) -eq 1 ]]		#if the denominator is equal to zero, which happens
 		then											#i.e. when X has the same value for different Ys,
 			a=0											#it sets a, b, and err equal to zero
@@ -87,7 +87,13 @@ do
 			for (( i = 0; i < $length; i++ )); do
 				var1=$(bc <<< "scale=2;$a*${X[$i]}")
 				var2=$(bc <<< "scale=2;$var1+$b")
-				var3=$(bc <<< "scale=2;${Y[$i]}-$var2")
+				if [[ $(echo "$var2 < 0" | bc) -eq 1 ]]
+				then
+					var2=$(bc <<< "scale=2;$var2*-1")
+					var3=$(bc <<< "scale=2;${Y[$i]}+$var2")
+				else
+					var3=$(bc <<< "scale=2;${Y[$i]}-$var2")
+				fi
 				var4=$(bc <<< "scale=2;$var3*$var3")
 				error=$(bc <<< "scale=2;$error+$var4")
 			done
