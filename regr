@@ -50,7 +50,7 @@ do
 		
 		sum_simple "${Y[@]}"	#calculates the total sum of Y's elements
 		sum_y=$ret				#saves it at a local variable
-		
+
 		sum_squared "${X[@]}"	#calculates the sum of the X's squared elements
 		sum_x2=$ret				#saves it at a local variable
 
@@ -61,8 +61,9 @@ do
 		done
 
 		#for the following calculations, bc command is used, as the program contains operations with decimals
-		tmp1=$(bc <<< "scale=2;$(bc <<< "scale=2;$length * $sum_xy")-$(bc <<< "scale=2;$sum_x * sum_y")")	#calculates the numerator of a's fraction
+		tmp1=$(bc <<< "scale=2;$(bc <<< "scale=2;$length * $sum_xy")-$(bc <<< "scale=2;$sum_x * $sum_y")")	#calculates the numerator of a's fraction
 		tmp2=$(bc <<< "scale=2;$(bc <<< "scale=2;$length * $sum_x2")-$(bc <<< "scale=2;$sum_x * $sum_x")")	#calculates the denominator of a's fraction
+		
 		if [[ $(echo "$tmp2 == 0" | bc) -eq 1 ]]		#if the denominator is equal to zero, which happens
 		then											#i.e. when X has the same value for different Ys,
 			a=0											#it sets a, b, and err equal to zero
@@ -71,12 +72,11 @@ do
 		else 											#else, it continues the calculations
 			a=$(bc <<< "scale=2;$tmp1/$tmp2")			#calculates a and saves it at a local variable
 
-
 			#calculation of b
 			x=$(bc <<< "scale=2;$a*$sum_x")
-			if [[ $(echo "$a < 0" | bc) -eq 1 ]]
+			if [[ $(echo "$x < 0" | bc) -eq 1 ]]
 			then
-				tmp=$(bc <<< "scale=2;$x * -1")		#if a (calculated before) is less than zero,
+				tmp=$(bc <<< "scale=2;$x*-1")		#if a (calculated before) is less than zero,
 				y=$(bc <<< "scale=2;$sum_y+$tmp")	#program adds the absolute value of 'a*sum_x' term
 			else
 				y=$(bc <<< "scale=2;$sum_y-$x")
@@ -105,4 +105,4 @@ do
 	fi
 		
 done
-IFS=$OLDIFSs	#sets IFS to the old value
+IFS=$OLDIFS	#sets IFS to the old value
